@@ -12,7 +12,7 @@ def scraper(url:str):
 
     try:
         response = requests.get(url)
-        
+
         # if any error occurs
         if response.status_code == 404:
             return []
@@ -67,21 +67,22 @@ def scrape(word:str):
         result += items
         i += 1
     
-    data = json_file['data'] + result   # add previously saved data (in json file) to the newly fetched data
-    value = {   # json will be saved in this format
-        "pages_read" : i-1 if len(data)<30 else i,
-        "data" : data
-    }
-
     # if we do not get any searchresult then no need to create a json file
     if not len(result) == 0:
+        data = json_file['data'] + result   # add previously saved data (in json file) to the newly fetched data
+        value = {   # json will be saved in this format
+            "pages_read" : i-1 if len(data)<30 else i,
+            "data" : data
+        }
         with open(filename, 'w') as file:
             json.dump(value,file, indent=4)
 
-    return value
+        return value
+    
+    return json_file
 
 
 result = scrape('काङ्ग्रेस')
 # result = scrape('lol')
 print(len(result['data']))
-# print(result)
+print(result)
