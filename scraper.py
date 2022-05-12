@@ -1,6 +1,7 @@
 import json
 import requests
 import os
+import time
 
 endpoint = "https://bg.annapurnapost.com/api/search?title="
 
@@ -8,22 +9,30 @@ def scraper(url:str):
     """
     returns scrapped Annapurna Post's articles
     """
-    response = requests.get(url)
-    
-    # if any error occurs
-    if response.status_code == 404:
-        return []
-    
-    # access the actual data we need
-    items = response.json() ['data']['items']
-    return items
 
+    try:
+        response = requests.get(url)
+        
+        # if any error occurs
+        if response.status_code == 404:
+            return []
+        
+        # access the actual data we need
+        items = response.json() ['data']['items']
+        return items
+
+    except:
+        return []
 
 def scrape(word:str):
     url = endpoint + word 
     filename = word + ".json"
     pages_read = None
-   
+    json_file = {
+        "pages_read":pages_read,
+        "data":[]
+    }
+
     # the script has been already run before
     if os.path.exists(filename):
         with open(filename, mode='r', encoding='utf-8') as file:
@@ -43,6 +52,12 @@ def scrape(word:str):
             url = endpoint + word + "&page=" + str(i)
         
         print("url is ---------------", url)
+
+        # this to check if how the script reruns if the internet connection is lost in the middle
+        if i == 2:
+            print("turn wifi off")
+            time.sleep(4)  
+
         items = scraper(url)
         
         # if no search result exists / if after pagination no more search result esixts OR it total no of items exceeds 30 then break the loop
@@ -51,11 +66,11 @@ def scrape(word:str):
         
         result += items
         i += 1
-
-    # json will be saved in this format
-    value = {
-        "pages_read" : i-1 if len(result)<30 else i,
-        "data" : result
+    
+    data = json_file['data'] + result   # add previously saved data (in json file) to the newly fetched data
+    value = {   # json will be saved in this format
+        "pages_read" : i-1 if len(data)<30 else i,
+        "data" : data
     }
 
     # if we do not get any searchresult then no need to create a json file
