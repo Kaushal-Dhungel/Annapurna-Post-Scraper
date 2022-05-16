@@ -2,7 +2,11 @@ class ValiDict:
     
     def __init__(self,schema_dict):
         self.schema_dict = schema_dict
-    
+        self.required = []
+        for key,val in schema_dict.items():
+            if val.get('required') == True:
+                self.required.append(key)
+
     def _evaluate(self, prop_dict, value):
         data_type = prop_dict.get('type')
 
@@ -13,11 +17,12 @@ class ValiDict:
 
             min_val = prop_dict.get('min_len' if data_type == str else 'gt')
             max_val = prop_dict.get('max_len' if data_type == str else 'lt')
+            compare_val = len(value) if data_type == str else value
 
-            if min_val and (len(value) if data_type == str else value) < min_val:
+            if min_val and compare_val < min_val:
                 return False
 
-            if max_val and (len(value) if data_type == str else value) > max_val:
+            if max_val and compare_val > max_val:
                 return False        
 
         if data_type == bool:
@@ -30,26 +35,37 @@ class ValiDict:
     def validate(self, vali_dict:dict):
         
         for key, val in vali_dict.items():
+
+            if key in self.required:
+                self.required.remove(key)
+
             prop_dict = self.schema_dict.get(key)
-            print(prop_dict)
+
             if prop_dict is not None:
                 if self._evaluate(prop_dict,val) == False:
                     return False
 
-        return True
+        if self.required == []:
+            return True
+
+        return False
+
 
 
 schema_dict = {
     "name" : {
         "type":str,
         "min_len":2,
-        "max_len":8
+        "max_len":8,
+        "required" : True
     },
 
     "age" : {
         "type": int,
         "gt": 3,
-        "lt":38
+        "lt":38,
+        "required" : False
+
     },
 
     "is_married":{
@@ -59,7 +75,7 @@ schema_dict = {
 }
 
 my_dict = {
-    "name" : "Kau",
+    "name" : "Kaus",
     "age" : 22,
     "is_married":True,
     "my_list":[1,2,3]
