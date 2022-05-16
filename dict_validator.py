@@ -1,5 +1,3 @@
-
-
 class ValiDict:
     
     def __init__(self,schema_dict):
